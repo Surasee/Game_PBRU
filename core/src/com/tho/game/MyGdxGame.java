@@ -3,6 +3,7 @@ package com.tho.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -11,19 +12,25 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 
+import java.util.Iterator;
 import java.util.Vector;
 
 public class MyGdxGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	private Texture bgTexture, imgFrog, imgCoins, imgPig, imgCloud;
 	private Music musicBackground;
+	private Sound frogSound;
 	private Rectangle frogRectangle;
 	private OrthographicCamera objOrthographicCamera;
 	private Vector3 objVector3;
 	private BitmapFont nameBitmapFont;
 	private int xcloudAnInt, ycloudAnInt = 570, driection = 1;
 	private boolean cloudABoolean = true;
+	private Array<Rectangle> objCoinsDrop;
+	private long lastDorpTime;
+	private Iterator<Rectangle> objIterator;
 
 
 
@@ -43,7 +50,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		//Create Camera
 		objOrthographicCamera = new OrthographicCamera();
-		objOrthographicCamera.setToOrtho(false,1280,768);
+		objOrthographicCamera.setToOrtho(false, 1280, 768);
 
 
 		//Setup BitMapFont
@@ -55,10 +62,10 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		//Inherit
 		frogRectangle = new Rectangle();
-		frogRectangle.x = 480;
-		frogRectangle.y = 20;
-		frogRectangle.width = 64;
-		frogRectangle.height = 64;
+		frogRectangle.x = 590;
+		frogRectangle.y = 100;
+		frogRectangle.width = 100;
+		frogRectangle.height = 75;
 
 
 
@@ -66,6 +73,9 @@ public class MyGdxGame extends ApplicationAdapter {
 		musicBackground = Gdx.audio.newMusic(Gdx.files.internal("bggame.mp3"));
 		musicBackground.setLooping(true);
 		musicBackground.play();
+
+		//set frog sound
+		frogSound = Gdx.audio.newSound(Gdx.files.internal("frog.wav"));
 
 	}
 
@@ -90,7 +100,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		//draw BG
 		batch.draw(bgTexture, 0, 0);
 		//drawable cloud
-		batch.draw(imgCloud,xcloudAnInt,ycloudAnInt);
+		batch.draw(imgCloud, xcloudAnInt, ycloudAnInt);
 
 
 
@@ -99,41 +109,74 @@ public class MyGdxGame extends ApplicationAdapter {
 		nameBitmapFont.draw(batch, "Coin's Frog", 50, 720);
 
 
-		//
+		//Frog
 		batch.draw(imgFrog, frogRectangle.x, frogRectangle.y);
 
 
 
 		batch.end();
 
+		//Active Frog
+		activeTouch();
 
 		//move cloud
 		//moveCloud();
-
 		moveCloud2();
 
 
+
+		//control screen frog
+
+
+
+
+	}
+
+	private void activeTouch() {
+
+
+
+		if (Gdx.input.isTouched()) {
+
+
+			frogSound.play();
+			objVector3 = new Vector3();
+			objVector3.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+
+			//Control Screen
+			if (objVector3.x < 590) {
+				frogRectangle.x -= (frogRectangle.x<0)?0:10;
+			} else {
+				frogRectangle.x += (frogRectangle.x>1180)?0:10;
+			}
+
+
+
+
+			//objOrthographicCamera.unproject(objVector3);
+			//frogRectangle.x = objVector3.x - 50;
+		}
 	}
 
 	private void moveCloud2() {
 		if ((xcloudAnInt < 0 )||(xcloudAnInt > 957)) {
 			driection *= -1;
 		}
-		xcloudAnInt += 300 * Gdx.graphics.getDeltaTime() * driection;
+		xcloudAnInt += 200 * Gdx.graphics.getDeltaTime() * driection;
 	}
 
 
 	private void moveCloud() {
 		if (cloudABoolean) {
 			if (xcloudAnInt < 937) {
-				xcloudAnInt += 300 * Gdx.graphics.getDeltaTime();
+				xcloudAnInt += 200 * Gdx.graphics.getDeltaTime();
 			} else {
 				cloudABoolean = !cloudABoolean;
 			}
 
 		} else {
 			if (xcloudAnInt>0) {
-				xcloudAnInt -= 300 * Gdx.graphics.getDeltaTime();
+				xcloudAnInt -= 200 * Gdx.graphics.getDeltaTime();
 			} else {
 				cloudABoolean = true;
 			}
