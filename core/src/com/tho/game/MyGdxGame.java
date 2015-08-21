@@ -26,8 +26,8 @@ public class MyGdxGame extends ApplicationAdapter {
 	private Rectangle frogRectangle, coinsRectangle, waterRectangle, pauseRectangle;
 	private OrthographicCamera objOrthographicCamera;
 	private Vector3 objVector3;
-	private BitmapFont nameBitmapFont, scoreBitmapFont, playBitmapFont, endBitmapFont;
-	private int xcloudAnInt, ycloudAnInt = 570, driection = 1, scoreAnInt, endAnInt = 10,point = 0;
+	private BitmapFont nameBitmapFont, scoreBitmapFont, showScoreBitmapFont, endBitmapFont;
+	private int xcloudAnInt, ycloudAnInt = 570, driection = 1, scoreAnInt, endAnInt = 20,point = 0,finalScore;
 
 
 	private Array<Rectangle> objCoinsDrop, objWaterDrop;
@@ -36,6 +36,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	private String[] nameStrings = {"pause.png","pig.png"};
 
+
+	private boolean EndAnBoolean = false;
 
 
 	
@@ -74,6 +76,10 @@ public class MyGdxGame extends ApplicationAdapter {
 		endBitmapFont.setColor(Color.RED);
 		endBitmapFont.setScale(3);
 
+		showScoreBitmapFont = new BitmapFont();
+		showScoreBitmapFont.setColor(Color.OLIVE);
+		showScoreBitmapFont.setScale(4);
+
 
 
 		//Inherit
@@ -106,11 +112,13 @@ public class MyGdxGame extends ApplicationAdapter {
 		musicBackground.setLooping(true);
 		musicBackground.play();
 
+
+
 		//set frog sound
 		frogSound = Gdx.audio.newSound(Gdx.files.internal("frog.wav"));
 		successSound = Gdx.audio.newSound(Gdx.files.internal("coins_drop.wav"));
 		falseSound = Gdx.audio.newSound(Gdx.files.internal("water_drop.wav"));
-		pigSound = Gdx.audio.newSound(Gdx.files.internal("pig.png"));
+		pigSound = Gdx.audio.newSound(Gdx.files.internal("pig.wav"));
 
 	}
 
@@ -160,6 +168,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Pause Button
 		batch.draw(imgPause, pauseRectangle.x, pauseRectangle.y);
 
+
+		if (EndAnBoolean) {
+			batch.draw(bgTexture,0,0);
+			scoreBitmapFont.draw(batch,"Your Final Score = "+finalScore,(Gdx.graphics.getWidth()/2)-150,(Gdx.graphics.getHeight()/2));
+
+		}//if
+
+
 		// End Draw
 		batch.end();
 
@@ -205,7 +221,7 @@ public class MyGdxGame extends ApplicationAdapter {
 				pigSound.play();
 				imgPause = new Texture(nameStrings[(++point)%nameStrings.length]);
 
-				pause();
+
 
 
 			}
@@ -266,6 +282,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			{
 				falseSound.play();
 				endAnInt--;
+				checkFalse();
 				coinsIterator.remove();
 			}//if
 			if(objMyCoins.overlaps(frogRectangle))
@@ -276,14 +293,36 @@ public class MyGdxGame extends ApplicationAdapter {
 			}
 		}//while
 
-		if (endAnInt < 0) {
-
-
-
-		}
-
 
 	}
+
+	private void checkFalse() {
+
+		if(endAnInt <= 0)
+		{
+			dispose();
+
+
+			if (!EndAnBoolean) {
+				finalScore = scoreAnInt;
+			}
+			EndAnBoolean = true;
+
+		}
+	}//checkFalse
+
+	@Override
+	public void dispose() {
+		super.dispose();
+		musicBackground.dispose();
+		frogSound.dispose();
+		falseSound.dispose();
+		successSound.dispose();
+		pigSound.dispose();
+
+	}//dispose
+
+
 
 	private void moveCloud() {
 		if ((xcloudAnInt < 0 )||(xcloudAnInt > 957)) {
@@ -315,15 +354,5 @@ public class MyGdxGame extends ApplicationAdapter {
 		lastDropWater = TimeUtils.nanoTime();
 	}//game water drop
 
-	@Override
-	public void pause() {
 
-		super.pause();
-	}
-
-	@Override
-	public void resume() {
-
-		super.resume();
-	}
 }
