@@ -92,8 +92,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		//Pause
 		pauseRectangle = new Rectangle();
-		pauseRectangle.x = 1150;
-		pauseRectangle.y = 650;
+		pauseRectangle.x = (Gdx.graphics.getWidth()/2);
+		pauseRectangle.y = (Gdx.graphics.getHeight()/2-150);
 		pauseRectangle.width = 100;
 		pauseRectangle.height = 100;
 
@@ -165,14 +165,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		scoreBitmapFont.draw(batch, "Your Score = " + scoreAnInt, 50, 70);
 		//Life Times
 		endBitmapFont.draw(batch, "Life Times = " + endAnInt, 940, 70);
-		// Pause Button
-		batch.draw(imgPause, pauseRectangle.x, pauseRectangle.y);
+
 
 
 		if (EndAnBoolean) {
 			batch.draw(bgTexture,0,0);
 			scoreBitmapFont.draw(batch,"Your Final Score = "+finalScore,(Gdx.graphics.getWidth()/2)-150,(Gdx.graphics.getHeight()/2));
-
+			// Pause Button
+			batch.draw(imgPause, (Gdx.graphics.getWidth()/2),(Gdx.graphics.getHeight()/2)-150);
 		}//if
 
 
@@ -217,9 +217,32 @@ public class MyGdxGame extends ApplicationAdapter {
 			Rectangle myPause = new Rectangle();
 			myPause.x = objVector3.x;
 			myPause.y = objVector3.y;
+
 			if(myPause.overlaps(pauseRectangle)){
+
 				pigSound.play();
 				imgPause = new Texture(nameStrings[(++point)%nameStrings.length]);
+				//set Rectangle Puase
+				pauseRectangle.x = (Gdx.graphics.getWidth()/2);
+				pauseRectangle.y = (Gdx.graphics.getHeight()/2)-150;
+
+				scoreAnInt = 0;
+				finalScore = 0;
+				endAnInt = 20;
+
+				//Restart
+				EndAnBoolean = !EndAnBoolean;
+
+				//set Music
+				musicBackground = Gdx.audio.newMusic(Gdx.files.internal("bggame.mp3"));
+				musicBackground.setLooping(true);
+				musicBackground.play();
+
+
+
+
+
+
 
 
 
