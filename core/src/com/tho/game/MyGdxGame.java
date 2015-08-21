@@ -221,25 +221,5 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	}//game coins drop
 
-/*
-	private void moveCloud() {
-		if (cloudABoolean) {
-			if (xcloudAnInt < 937) {
-				xcloudAnInt += 200 * Gdx.graphics.getDeltaTime();
-			} else {
-				cloudABoolean = !cloudABoolean;
-			}
 
-		} else {
-			if (xcloudAnInt>0) {
-				xcloudAnInt -= 200 * Gdx.graphics.getDeltaTime();
-			} else {
-				cloudABoolean = true;
-			}
-		}
-
-
-
-	}//movecloud
-*/
 }
