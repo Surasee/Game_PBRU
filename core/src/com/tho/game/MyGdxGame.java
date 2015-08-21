@@ -206,6 +206,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			objVector3 = new Vector3();
 			objVector3.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 
+			
 
 			//Pause touch
 			objOrthographicCamera.unproject(objVector3);
