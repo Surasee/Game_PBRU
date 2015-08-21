@@ -22,7 +22,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	private Texture bgTexture, imgFrog, imgCoins, imgPig, imgCloud, imgWater, imgPause;
 	private Music musicBackground;
-	private Sound frogSound, successSound, falseSound;
+	private Sound frogSound, successSound, falseSound, pigSound;
 	private Rectangle frogRectangle, coinsRectangle, waterRectangle, pauseRectangle;
 	private OrthographicCamera objOrthographicCamera;
 	private Vector3 objVector3;
@@ -30,9 +30,9 @@ public class MyGdxGame extends ApplicationAdapter {
 	private int xcloudAnInt, ycloudAnInt = 570, driection = 1, scoreAnInt, endAnInt = 10,point = 0;
 
 
-	private Array<Rectangle> objCoinsDrop, objWaterDrop, objPause;
+	private Array<Rectangle> objCoinsDrop, objWaterDrop;
 	private long lastDropCoins, lastDropWater;
-	private Iterator<Rectangle> coinsIterator, watersIterator, pauseIterator;
+	private Iterator<Rectangle> coinsIterator, watersIterator;
 
 	private String[] nameStrings = {"pause.png","pig.png"};
 
@@ -110,6 +110,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		frogSound = Gdx.audio.newSound(Gdx.files.internal("frog.wav"));
 		successSound = Gdx.audio.newSound(Gdx.files.internal("coins_drop.wav"));
 		falseSound = Gdx.audio.newSound(Gdx.files.internal("water_drop.wav"));
+		pigSound = Gdx.audio.newSound(Gdx.files.internal("pig.png"));
 
 	}
 
@@ -135,7 +136,6 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		//draw BG
 		batch.draw(bgTexture, 0, 0);
-
 		//Frog
 		batch.draw(imgFrog, frogRectangle.x, frogRectangle.y);
 
@@ -143,7 +143,6 @@ public class MyGdxGame extends ApplicationAdapter {
 		for(Rectangle forRectangle : objCoinsDrop){
 			batch.draw(imgCoins,forRectangle.x,forRectangle.y);
 		}// for
-
 		//water
 		for(Rectangle forRectangle : objWaterDrop){
 			batch.draw(imgWater,forRectangle.x,forRectangle.y);
@@ -152,22 +151,14 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		//drawable cloud
 		batch.draw(imgCloud, xcloudAnInt, ycloudAnInt);
-
-
-
 		//Drawable Font
 		nameBitmapFont.draw(batch, "Coin's Frog By Tho", 50, 720);
-
 		//Score
 		scoreBitmapFont.draw(batch, "Your Score = " + scoreAnInt, 50, 70);
-
 		//Life Times
 		endBitmapFont.draw(batch, "Life Times = " + endAnInt, 940, 70);
-
 		// Pause Button
-
 		batch.draw(imgPause, pauseRectangle.x, pauseRectangle.y);
-
 
 		// End Draw
 		batch.end();
@@ -199,14 +190,11 @@ public class MyGdxGame extends ApplicationAdapter {
 	private void activeTouch() {
 		if (Gdx.input.isTouched()) {
 
-
-
-
 			frogSound.play();
 			objVector3 = new Vector3();
 			objVector3.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 
-			
+
 
 			//Pause touch
 			objOrthographicCamera.unproject(objVector3);
@@ -214,9 +202,15 @@ public class MyGdxGame extends ApplicationAdapter {
 			myPause.x = objVector3.x;
 			myPause.y = objVector3.y;
 			if(myPause.overlaps(pauseRectangle)){
+				pigSound.play();
 				imgPause = new Texture(nameStrings[(++point)%nameStrings.length]);
+
+				pause();
+
+
 			}
 			//End Pause Touch
+
 
 			//Control Screen
 			if (objVector3.x < Gdx.graphics.getWidth()/2) { // <<<<<<<<half Display
@@ -231,6 +225,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	}//Touch
 
+
 	private void watersMove() {
 
 		//Check Time End of Drop Water
@@ -241,10 +236,10 @@ public class MyGdxGame extends ApplicationAdapter {
 		watersIterator = objWaterDrop.iterator();
 		while (watersIterator.hasNext()){
 			Rectangle objMyWater = watersIterator.next();
-			objMyWater.y -= 80*Gdx.graphics.getDeltaTime();
+			objMyWater.y -= 60*Gdx.graphics.getDeltaTime();
 			if(objMyWater.y + 64 < 0)
 			{
-
+				falseSound.play();
 				watersIterator.remove();
 			}//if
 			if(objMyWater.overlaps(frogRectangle))
@@ -280,6 +275,14 @@ public class MyGdxGame extends ApplicationAdapter {
 				coinsIterator.remove();
 			}
 		}//while
+
+		if (endAnInt < 0) {
+
+
+
+		}
+
+
 	}
 
 	private void moveCloud() {
@@ -312,4 +315,15 @@ public class MyGdxGame extends ApplicationAdapter {
 		lastDropWater = TimeUtils.nanoTime();
 	}//game water drop
 
+	@Override
+	public void pause() {
+
+		super.pause();
+	}
+
+	@Override
+	public void resume() {
+
+		super.resume();
+	}
 }
