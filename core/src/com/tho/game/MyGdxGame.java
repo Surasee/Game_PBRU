@@ -20,21 +20,21 @@ import java.util.Iterator;
 
 public class MyGdxGame extends ApplicationAdapter {
 	SpriteBatch batch;
-	private Texture bgTexture, imgFrog, imgCoins, imgPig, imgCloud;
+	private Texture bgTexture, imgFrog, imgCoins, imgPig, imgCloud, imgWater, imgPause;
 	private Music musicBackground;
 	private Sound frogSound, successSound, falseSound;
-	private Rectangle frogRectangle, coinsRectangle;
+	private Rectangle frogRectangle, coinsRectangle, waterRectangle, pauseRectangle;
 	private OrthographicCamera objOrthographicCamera;
 	private Vector3 objVector3;
-	private BitmapFont nameBitmapFont, scoreBitmapFont, playBitmapFont;
-	private int xcloudAnInt, ycloudAnInt = 570, driection = 1, scoreAnInt;
-	private boolean cloudABoolean = true;
+	private BitmapFont nameBitmapFont, scoreBitmapFont, playBitmapFont, endBitmapFont;
+	private int xcloudAnInt, ycloudAnInt = 570, driection = 1, scoreAnInt, endAnInt = 10,point = 0;
 
 
+	private Array<Rectangle> objCoinsDrop, objWaterDrop, objPause;
+	private long lastDropCoins, lastDropWater;
+	private Iterator<Rectangle> coinsIterator, watersIterator, pauseIterator;
 
-	private Array<Rectangle> objCoinsDrop;
-	private long lastDorpTime;
-	private Iterator<Rectangle> objIterator;
+	private String[] nameStrings = {"pause.png","pig.png"};
 
 
 
@@ -50,6 +50,9 @@ public class MyGdxGame extends ApplicationAdapter {
 		imgFrog = new Texture("frog.png");
 		imgCoins = new Texture("coins.png");
 		imgCloud = new Texture("cloud.png");
+		imgWater = new Texture("droplet.png");
+		imgPause = new Texture(nameStrings[0]);
+
 
 
 		//Create Camera
@@ -67,6 +70,10 @@ public class MyGdxGame extends ApplicationAdapter {
 		scoreBitmapFont.setColor(Color.YELLOW);
 		scoreBitmapFont.setScale(3);
 
+		endBitmapFont = new BitmapFont();
+		endBitmapFont.setColor(Color.RED);
+		endBitmapFont.setScale(3);
+
 
 
 		//Inherit
@@ -76,10 +83,22 @@ public class MyGdxGame extends ApplicationAdapter {
 		frogRectangle.width = 100;
 		frogRectangle.height = 75;
 
+
+		//Pause
+		pauseRectangle = new Rectangle();
+		pauseRectangle.x = 1150;
+		pauseRectangle.y = 650;
+		pauseRectangle.width = 100;
+		pauseRectangle.height = 100;
+
+
 		//Create CoinsDorp
 		objCoinsDrop = new Array<Rectangle>();
 		gameCoinsDrop();
 
+		//Create WaterDrop
+		objWaterDrop = new Array<Rectangle>();
+		gameWaterDrop();
 
 
 		//set Music
@@ -125,21 +144,33 @@ public class MyGdxGame extends ApplicationAdapter {
 			batch.draw(imgCoins,forRectangle.x,forRectangle.y);
 		}// for
 
+		//water
+		for(Rectangle forRectangle : objWaterDrop){
+			batch.draw(imgWater,forRectangle.x,forRectangle.y);
+		}// for
+
+
 		//drawable cloud
 		batch.draw(imgCloud, xcloudAnInt, ycloudAnInt);
+
+
 
 		//Drawable Font
 		nameBitmapFont.draw(batch, "Coin's Frog By Tho", 50, 720);
 
 		//Score
-		scoreBitmapFont.draw(batch, "Your Score = "+scoreAnInt, 50, 70);
+		scoreBitmapFont.draw(batch, "Your Score = " + scoreAnInt, 50, 70);
 
+		//Life Times
+		endBitmapFont.draw(batch, "Life Times = " + endAnInt, 940, 70);
+
+		// Pause Button
+
+		batch.draw(imgPause, pauseRectangle.x, pauseRectangle.y);
 
 
 		// End Draw
 		batch.end();
-
-
 
 
 
@@ -149,45 +180,42 @@ public class MyGdxGame extends ApplicationAdapter {
 		//move cloud
 		moveCloud();
 
-		//Check Time End of Drop
-		if (TimeUtils.nanoTime() - lastDorpTime > 1E9)
-		{
-			gameCoinsDrop();
-		}
-		objIterator = objCoinsDrop.iterator();
-		while (objIterator.hasNext()){
-			Rectangle objMyCoins = objIterator.next();
-			objMyCoins.y -= 200*Gdx.graphics.getDeltaTime();
 
-			if(objMyCoins.y + 64 < 0)
-			{
-				falseSound.play();
-				objIterator.remove();
-			}//if
-			if(objMyCoins.overlaps(frogRectangle))
-			{
-				scoreAnInt++;
-				successSound.play();
-				objIterator.remove();
-			}
-		}//while
+		//coins move
+		coinsMove();
 
-		//moveCoins();
+		//water move
+		watersMove();
 
 
 
 
+	}//render
 
 
-	}
+
+
 
 	private void activeTouch() {
-
 		if (Gdx.input.isTouched()) {
+
+
+
 
 			frogSound.play();
 			objVector3 = new Vector3();
 			objVector3.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+
+
+			//Pause touch
+			objOrthographicCamera.unproject(objVector3);
+			Rectangle myPause = new Rectangle();
+			myPause.x = objVector3.x;
+			myPause.y = objVector3.y;
+			if(myPause.overlaps(pauseRectangle)){
+				imgPause = new Texture(nameStrings[(++point)%nameStrings.length]);
+			}
+			//End Pause Touch
 
 			//Control Screen
 			if (objVector3.x < Gdx.graphics.getWidth()/2) { // <<<<<<<<half Display
@@ -195,11 +223,62 @@ public class MyGdxGame extends ApplicationAdapter {
 			} else {
 				frogRectangle.x += (frogRectangle.x>1180)?0:10;
 			}
-
 			// move touch
 			//objOrthographicCamera.unproject(objVector3);
 			//frogRectangle.x = objVector3.x - 50;
 		}
+
+	}//Touch
+
+	private void watersMove() {
+
+		//Check Time End of Drop Water
+		if (TimeUtils.nanoTime() - lastDropWater > 1E9)
+		{
+			gameWaterDrop();
+		}
+		watersIterator = objWaterDrop.iterator();
+		while (watersIterator.hasNext()){
+			Rectangle objMyWater = watersIterator.next();
+			objMyWater.y -= 80*Gdx.graphics.getDeltaTime();
+			if(objMyWater.y + 64 < 0)
+			{
+
+				watersIterator.remove();
+			}//if
+			if(objMyWater.overlaps(frogRectangle))
+			{
+				falseSound.play();
+				scoreAnInt--;
+				watersIterator.remove();
+			}
+		}//while
+	}
+
+	private void coinsMove() {
+
+		//Check Time End of Drop Coins
+		if (TimeUtils.nanoTime() - lastDropCoins > 1E9)
+		{
+			gameCoinsDrop();
+		}
+		coinsIterator = objCoinsDrop.iterator();
+		while (coinsIterator.hasNext()){
+			Rectangle objMyCoins = coinsIterator.next();
+			objMyCoins.y -= 200*Gdx.graphics.getDeltaTime();
+			if(objMyCoins.y + 64 < 0)
+			{
+				falseSound.play();
+				endAnInt--;
+				coinsIterator.remove();
+			}//if
+			if(objMyCoins.overlaps(frogRectangle))
+			{
+				successSound.play();
+				scoreAnInt++;
+				coinsIterator.remove();
+			}
+		}//while
 	}
 
 	private void moveCloud() {
@@ -217,9 +296,19 @@ public class MyGdxGame extends ApplicationAdapter {
 		coinsRectangle.width = 64;
 		coinsRectangle.height = 64;
 		objCoinsDrop.add(coinsRectangle);
-		lastDorpTime = TimeUtils.nanoTime();
-
+		lastDropCoins = TimeUtils.nanoTime();
 	}//game coins drop
 
+
+	private void gameWaterDrop() {
+
+		waterRectangle = new Rectangle();
+		waterRectangle.x = MathUtils.random(0, 1226);
+		waterRectangle.y = 570;
+		waterRectangle.width = 64;
+		waterRectangle.height = 64;
+		objWaterDrop.add(waterRectangle);
+		lastDropWater = TimeUtils.nanoTime();
+	}//game water drop
 
 }
